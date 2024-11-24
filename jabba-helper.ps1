@@ -44,10 +44,11 @@ function Set-JDKPaths {
     Write-Output "Setting the paths for current user only"
     [System.Environment]::SetEnvironmentVariable("JAVA_HOME", $location, [System.EnvironmentVariableTarget]::User)
 
-    $currentPath = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
+    $currentUserPath = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
+    $systemPath = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::Machine)
     $updatedPath = ""
 
-    $pathList = $currentPath -split ";"
+    $pathList = $currentUserPath -split ";"
     foreach ($path in $pathList) {
         if ($path -notmatch "\\.jabba\\jdk") {
             if ($updatedPath -eq "") {
@@ -58,7 +59,7 @@ function Set-JDKPaths {
         }
     }
 
-    $updatedPath = "$location\bin;$updatedPath"
+    $updatedPath = "$location\bin;$updatedPath;$systemPath"
     [System.Environment]::SetEnvironmentVariable("Path", $updatedPath, [System.EnvironmentVariableTarget]::User)
 
     # Persist the updated PATH in the registry
@@ -69,7 +70,7 @@ function Set-JDKPaths {
 
     # Update the current session environment variables
     $env:JAVA_HOME = $location
-    $env:Path = $updatedPath
+    $env:Path = "$location\bin;$currentUserPath;$systemPath"
 
     Write-Output "Terminal session updated to reflect the new JAVA_HOME and PATH"
 }
